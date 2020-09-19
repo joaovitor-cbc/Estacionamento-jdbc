@@ -189,7 +189,11 @@ public class TelaInicial extends javax.swing.JFrame {
             carro.setPlaca(txtPlaca.getText());
             carro.setCor(txtCor.getText());
             carro.setDescricao(txtDescricao.getText());
-            carroDao.inserir(carro);
+            //apos inserir o registro, devera retornar o id
+            Long id = carroDao.inserir(carro);
+            if(id!=null) {
+                txtCodigo.setText(String.valueOf(id));
+            }
         } else {
             Carro carro = new Carro();
             CarroDAO carroDao = new CarroDAO();

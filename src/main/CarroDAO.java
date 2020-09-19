@@ -29,19 +29,27 @@ public class CarroDAO {
         }
     }
 
-    public void inserir(Carro carro) {
+    public Long inserir(Carro carro) {
         String sql = "INSERT INTO carro (placa,cor,descricao) VALUES (?,?,?)";
         try {
             conn = ConnectionFactory.getConexao();
-            stmt = conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, carro.getPlaca());
             stmt.setString(2, carro.getCor());
             stmt.setString(3, carro.getDescricao());
             stmt.execute();
-            stmt.close();
+            
+            ResultSet rs1 = stmt.getGeneratedKeys();
+            Long ultimoId = -1;
+            if (rs1.next()) {
+                ultimoId = rs1.getLong(1);
+            }
+            return ultimoId;
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
+            return null;
         } finally {
+            stmt.close();
             close();
         }
 
