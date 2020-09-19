@@ -40,10 +40,11 @@ public class CarroDAO {
             stmt.execute();
             
             ResultSet rs1 = stmt.getGeneratedKeys();
+            Long ultimoId = -1;
             if (rs1.next()) {
-                Long ultimoId = rs1.getLong(1);
-                return ultimoId;
+                ultimoId = rs1.getLong(1);
             }
+            return ultimoId;
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
             return null;
