@@ -89,7 +89,7 @@ public class CarroDAO {
     }
 
     public List<Carro> listaTodos() {
-        String sql = "SELECT + FROM carro";
+        String sql = "SELECT * FROM carro";
         try {
             conn = ConnectionFactory.getConexao();
             st = conn.createStatement();
@@ -111,7 +111,7 @@ public class CarroDAO {
     }
 
     public List<Carro> listaPelaPlaca(String valor) {
-        String sql = "SELECT + FROM carro WHERE placa LIKE ?";
+        String sql = "SELECT * FROM carro WHERE placa LIKE ?";
         try {
             conn = ConnectionFactory.getConexao();
             stmt = conn.prepareStatement(sql);

@@ -16,6 +16,7 @@ public class TelaInicial extends javax.swing.JFrame {
     public TelaInicial() {
         initComponents();
         tblTabela.setModel(tableModel);
+        carregarTabela();
         setLocationRelativeTo(null);
         
     }
