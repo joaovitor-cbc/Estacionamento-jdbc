@@ -1,5 +1,6 @@
-package main;
+package controller;
 
+import model.Carro;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
@@ -19,8 +20,11 @@ public class CarroDAO {
     private Statement st;
     private List<Carro> lista = new ArrayList<>();
 
-    void close() {
+    void close(Statement stm) {
         try {
+            if(stm != null){
+                stm.close();
+            }
             if (conn != null) {
                 conn.close();
             }
@@ -31,6 +35,7 @@ public class CarroDAO {
 
     public Long inserir(Carro carro) {
         String sql = "INSERT INTO carro (placa,cor,descricao) VALUES (?,?,?)";
+        Long ultimoId = -1L;
         try {
             conn = ConnectionFactory.getConexao();
             stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -38,19 +43,16 @@ public class CarroDAO {
             stmt.setString(2, carro.getCor());
             stmt.setString(3, carro.getDescricao());
             stmt.execute();
-            
             ResultSet rs1 = stmt.getGeneratedKeys();
-            Long ultimoId = -1;
             if (rs1.next()) {
                 ultimoId = rs1.getLong(1);
             }
             return ultimoId;
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
-            return null;
+            return ultimoId;
         } finally {
-            stmt.close();
-            close();
+            close(stmt);
         }
 
     }
@@ -65,11 +67,10 @@ public class CarroDAO {
             stmt.setString(3, carro.getDescricao());
             stmt.setInt(4, carro.getId());
             stmt.execute();
-            stmt.close();
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close();
+            close(stmt);
         }
     }
 
@@ -80,11 +81,10 @@ public class CarroDAO {
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, valor);
             stmt.executeUpdate();
-            stmt.close();
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close();
+            close(stmt);
         }
     }
 
@@ -102,11 +102,10 @@ public class CarroDAO {
                 carro.setDescricao(rs.getString("descricao"));
                 lista.add(carro);
             }
-            st.close();
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close();
+            close(st);
         }
         return lista;
     }
@@ -127,11 +126,10 @@ public class CarroDAO {
                 carro.setDescricao(resultado.getString("descricao"));
                 lista.add(carro);
             }
-            stmt.close();
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close();
+            close(stmt);
         }
         return lista;
     }
