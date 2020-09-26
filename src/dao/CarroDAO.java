@@ -1,5 +1,6 @@
-package controller;
+package dao;
 
+import factoryconnection.ConnectionFactory;
 import model.Carro;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -15,18 +16,14 @@ import java.util.List;
  */
 public class CarroDAO {
 
-    private Connection conn;
-    private PreparedStatement stmt;
-    private Statement st;
-    private List<Carro> lista = new ArrayList<>();
 
-    void close(Statement stm) {
+    void close(Connection con, Statement stm) {
         try {
             if(stm != null){
                 stm.close();
             }
-            if (conn != null) {
-                conn.close();
+            if (con != null) {
+                con.close();
             }
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
@@ -36,6 +33,8 @@ public class CarroDAO {
     public Long inserir(Carro carro) {
         String sql = "INSERT INTO carro (placa,cor,descricao) VALUES (?,?,?)";
         Long ultimoId = -1L;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
             conn = ConnectionFactory.getConexao();
             stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -52,13 +51,15 @@ public class CarroDAO {
             System.out.println("Erro de " + e.getMessage());
             return ultimoId;
         } finally {
-            close(stmt);
+            close(conn, stmt);
         }
 
     }
 
     public void alterar(Carro carro) {
         String sql = "UPDATE carro SET placa = ?, cor = ?, descricao= ? WHERE id = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
             conn = ConnectionFactory.getConexao();
             stmt = conn.prepareStatement(sql);
@@ -70,12 +71,14 @@ public class CarroDAO {
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close(stmt);
+            close(conn,stmt);
         }
     }
 
     public void excluir(int valor) {
         String sql = "DELETE FROM carro WHERE id = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
             conn = ConnectionFactory.getConexao();
             stmt = conn.prepareStatement(sql);
@@ -84,12 +87,15 @@ public class CarroDAO {
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close(stmt);
+            close(conn,stmt);
         }
     }
 
     public List<Carro> listaTodos() {
         String sql = "SELECT * FROM carro";
+        List<Carro> lista = new ArrayList<>();
+        Connection conn = null;
+        Statement st = null;
         try {
             conn = ConnectionFactory.getConexao();
             st = conn.createStatement();
@@ -105,13 +111,16 @@ public class CarroDAO {
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close(st);
+            close(conn,st);
         }
         return lista;
     }
 
     public List<Carro> listaPelaPlaca(String valor) {
         String sql = "SELECT * FROM carro WHERE placa LIKE ?";
+        List<Carro> lista = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
             conn = ConnectionFactory.getConexao();
             stmt = conn.prepareStatement(sql);
@@ -129,9 +138,8 @@ public class CarroDAO {
         } catch (SQLException e) {
             System.out.println("Erro de " + e.getMessage());
         } finally {
-            close(stmt);
+            close(conn,stmt);
         }
         return lista;
     }
-
 }

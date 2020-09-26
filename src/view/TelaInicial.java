@@ -2,8 +2,10 @@
 package view;
 import javax.swing.JOptionPane;
 import model.Carro;
-import controller.CarroDAO;
-import model.TableModelCarro;
+import dao.CarroDAO;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -11,11 +13,10 @@ import model.TableModelCarro;
  */
 public class TelaInicial extends javax.swing.JFrame {
 
-    TableModelCarro tableModel = new TableModelCarro();
+    CarroDAO carroDao = new CarroDAO();
     
     public TelaInicial() {
         initComponents();
-        tblTabela.setModel(tableModel);
         carregarTabela();
         setLocationRelativeTo(null);
         
@@ -43,8 +44,8 @@ public class TelaInicial extends javax.swing.JFrame {
         btnSalvar = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         txtPesquisaPlaca = new javax.swing.JTextField();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        tblTabela = new javax.swing.JTable();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        tbPrincipal = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -92,28 +93,20 @@ public class TelaInicial extends javax.swing.JFrame {
             }
         });
 
-        tblTabela.setModel(new javax.swing.table.DefaultTableModel(
+        tbPrincipal.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "id", "placa", "cor", "descrição"
+                "id", "placa", "cor", "descricao"
             }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        tblTabela.addMouseListener(new java.awt.event.MouseAdapter() {
+        ));
+        tbPrincipal.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblTabelaMouseClicked(evt);
+                tbPrincipalMouseClicked(evt);
             }
         });
-        jScrollPane1.setViewportView(tblTabela);
+        jScrollPane2.setViewportView(tbPrincipal);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -154,12 +147,12 @@ public class TelaInicial extends javax.swing.JFrame {
                         .addComponent(btnSalvar, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(jScrollPane2)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(24, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel1)
@@ -180,7 +173,8 @@ public class TelaInicial extends javax.swing.JFrame {
                     .addComponent(btnExcluir)
                     .addComponent(btnSalvar))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 284, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
@@ -194,6 +188,7 @@ public class TelaInicial extends javax.swing.JFrame {
     }//GEN-LAST:event_btnLimparMouseClicked
 
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
+        Carro carro = new Carro();
         if (txtPlaca.getText().equals("")) {
             JOptionPane.showMessageDialog(null, " Placa Invalida", "AVISO!", JOptionPane.WARNING_MESSAGE);
             return;
@@ -201,32 +196,20 @@ public class TelaInicial extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, " Cor Invalida", "AVISO!", JOptionPane.WARNING_MESSAGE);
             return;
         } else if (txtCodigo.getText().equals("")) {
-            Carro carro = new Carro();
-            CarroDAO carroDao = new CarroDAO();
             carro.setPlaca(txtPlaca.getText());
             carro.setCor(txtCor.getText());
             carro.setDescricao(txtDescricao.getText());
             //apos inserir o registro, devera retornar o id
             Long id = carroDao.inserir(carro);
-            if(id!=-1L) {
-                txtCodigo.setText(String.valueOf(id));
-                tableModel.addRow(carro);
-            }
+            txtCodigo.setText(String.valueOf(id));
         } else {
-            Carro carro = new Carro();
-            CarroDAO carroDao = new CarroDAO();
             carro.setId(Integer.parseInt(txtCodigo.getText()));
             carro.setPlaca(txtPlaca.getText());
             carro.setCor(txtCor.getText());
             carro.setDescricao(txtDescricao.getText());
             carroDao.alterar(carro);
-            if(tblTabela.getSelectedRow() != -1){
-                tableModel.setValueAt(txtCodigo.getText(),tblTabela.getSelectedRow(), 0);
-                tableModel.setValueAt(txtPlaca.getText(),tblTabela.getSelectedRow(), 1);
-                tableModel.setValueAt(txtCor.getText(),tblTabela.getSelectedRow(), 2);
-                tableModel.setValueAt(txtDescricao.getText(),tblTabela.getSelectedRow(), 3);
-            }
         }
+        carregarTabela();
         txtCodigo.setText("");
         txtPlaca.setText("");
         txtCor.setText("");
@@ -243,37 +226,65 @@ public class TelaInicial extends javax.swing.JFrame {
     }//GEN-LAST:event_btnLimparActionPerformed
 
     private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
-        CarroDAO carroDao = new CarroDAO();
         int escolha = JOptionPane.showConfirmDialog(null, "Quer excluir", "AVISO!", JOptionPane.WARNING_MESSAGE);
         if (escolha == JOptionPane.YES_OPTION) {
-            if(tblTabela.getSelectedRow() != -1){
             int id = Integer.parseInt(txtCodigo.getText());
             carroDao.excluir(id);
-            tableModel.removeRow(tblTabela.getSelectedRow());
-            }
+            carregarTabela();
+            txtCodigo.setText("");
+            txtPlaca.setText("");
+            txtCor.setText("");
+            txtDescricao.setText("");
+            txtPesquisaPlaca.setText("");
         }
     }//GEN-LAST:event_btnExcluirActionPerformed
 
-    private void tblTabelaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblTabelaMouseClicked
-     int linha = tblTabela.getSelectedRow();
-     int id = (Integer)tableModel.getValueAt(linha, 0);
-     String placa = (String)tableModel.getValueAt(linha, 1);
-     String cor = (String)tableModel.getValueAt(linha, 2);
-     String descricao = (String)tableModel.getValueAt(linha, 3);
-     txtCodigo.setText(Integer.toString(id));
-     txtPlaca.setText(placa);
-     txtCor.setText(cor);
-     txtDescricao.setText(descricao);
-    }//GEN-LAST:event_tblTabelaMouseClicked
-
     private void txtPesquisaPlacaKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtPesquisaPlacaKeyPressed
-     CarroDAO carroDao = new CarroDAO();
-     String pesquisa = txtPesquisaPlaca.getText();
-     tblTabela.setModel(new TableModelCarro(carroDao.listaPelaPlaca(pesquisa)));
+        String pesquisa = txtPesquisaPlaca.getText();
+        //aqui vc esta intanciando direto na tabela
+        preencherTabela(pesquisa);
     }//GEN-LAST:event_txtPesquisaPlacaKeyPressed
+
+    private void tbPrincipalMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbPrincipalMouseClicked
+        if (tbPrincipal.getSelectedRow() != -1) {
+            int linha = tbPrincipal.getSelectedRow();
+            DefaultTableModel tableModel = (DefaultTableModel)tbPrincipal.getModel();
+            int id = (Integer) tableModel.getValueAt(linha, 0);
+            String placa = (String) tableModel.getValueAt(linha, 1);
+            String cor = (String) tableModel.getValueAt(linha, 2);
+            String descricao = (String) tableModel.getValueAt(linha, 3);
+            txtCodigo.setText(Integer.toString(id));
+            txtPlaca.setText(placa);
+            txtCor.setText(cor);
+            txtDescricao.setText(descricao);
+        }
+    }//GEN-LAST:event_tbPrincipalMouseClicked
     private void carregarTabela() {
-     CarroDAO carroDao = new CarroDAO();
-     tblTabela.setModel(new TableModelCarro(carroDao.listaTodos()));
+        preencherTabela(null);
+    }
+    
+    public void preencherTabela(String placa) {
+        limparTabela();
+        DefaultTableModel dm = (DefaultTableModel)tbPrincipal.getModel();
+        List<Carro> lista = new ArrayList<>();
+        if(placa!=null && !placa.trim().equals("")){
+            lista = carroDao.listaPelaPlaca(placa);
+        }
+        else{
+            lista = carroDao.listaTodos();
+        }
+        for(Carro carro : lista){
+            Object[] objeto = new Object[]{carro.getId(),carro.getPlaca(),carro.getCor(), carro.getDescricao()};
+            dm.addRow(objeto);
+        }
+    }
+    
+    public void limparTabela(){
+        DefaultTableModel dm = (DefaultTableModel)tbPrincipal.getModel();
+        while(dm.getRowCount() > 0){
+            dm.removeRow(0);
+        }
+        
     }
     /**
      * @param args the command line arguments
@@ -319,8 +330,8 @@ public class TelaInicial extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable tblTabela;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTable tbPrincipal;
     private javax.swing.JTextField txtCodigo;
     private javax.swing.JTextField txtCor;
     private javax.swing.JTextField txtDescricao;
